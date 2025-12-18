@@ -50,7 +50,21 @@ class BrainTumorDataset(Dataset):
             mask = np.array(group['tumor_mask'], dtype=np.float32)
             
             if self.return_label:
-                label = int(group['label'][()])
+                try:
+                    label_data = group['label']
+                    # Handle different HDF5 dataset structures
+                    if hasattr(label_data, 'dtype') and label_data.dtype.names:
+                        # Compound type - access first field
+                        label = int(label_data[0])
+                    elif label_data.shape == ():
+                        # Scalar dataset
+                        label = int(label_data[()])
+                    else:
+                        # Array dataset - take first element
+                        label = int(label_data[0])
+                except (KeyError, ValueError, TypeError) as e:
+                    print(f"Warning: Could not read label for {patient_id}: {e}")
+                    label = 0
             else:
                 label = None
         
@@ -117,7 +131,21 @@ class HDF5DatasetExplorer:
                 stats['mask_shapes'].append(mask.shape)
                 
                 # Get label
-                label = int(group['label'][()])
+                try:
+                    label_data = group['label']
+                    # Handle different HDF5 dataset structures
+                    if hasattr(label_data, 'dtype') and label_data.dtype.names:
+                        # Compound type - access first field
+                        label = int(label_data[0])
+                    elif label_data.shape == ():
+                        # Scalar dataset
+                        label = int(label_data[()])
+                    else:
+                        # Array dataset - take first element
+                        label = int(label_data[0])
+                except (KeyError, ValueError, TypeError) as e:
+                    print(f"Warning: Could not read label for {patient_id}: {e}")
+                    label = 0
                 stats['labels'].append(label)
                 
                 # Update label distribution
@@ -185,7 +213,22 @@ def create_data_splits(
     with h5py.File(hdf5_path, 'r') as f:
         for patient_id in f.keys():
             patient_ids.append(patient_id)
-            labels.append(int(f[patient_id]['label'][()]))
+            try:
+                label_data = f[patient_id]['label']
+                # Handle different HDF5 dataset structures
+                if hasattr(label_data, 'dtype') and label_data.dtype.names:
+                    # Compound type - access first field
+                    label = int(label_data[0])
+                elif label_data.shape == ():
+                    # Scalar dataset
+                    label = int(label_data[()])
+                else:
+                    # Array dataset - take first element
+                    label = int(label_data[0])
+            except (KeyError, ValueError, TypeError) as e:
+                print(f"Warning: Could not read label for {patient_id}: {e}")
+                label = 0
+            labels.append(label)
     
     patient_ids = np.array(patient_ids)
     labels = np.array(labels)
