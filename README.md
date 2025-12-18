@@ -240,9 +240,9 @@ Ecology, 26(3), 297-302.
 
 ## License
 
-[Add your license here]
+MIT
 
 ## Contact
 
-[Add contact information]
+adebayovicktor@gmail.com
 
