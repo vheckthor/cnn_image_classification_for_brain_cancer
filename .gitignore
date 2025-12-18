@@ -20,4 +20,4 @@ __pycache__/*
 .env.test
 .env.production
 info/*
-dataset/*
+dataset/brain_tumor_dataset.h5
